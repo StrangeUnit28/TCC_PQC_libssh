@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  libssh-server:
+    build: .
+    container_name: libssh-server-test
+    ports:
+      - "2222:2222"
+      - "22:22"
+    volumes:
+      - ./server_data:/opt/libssh/server_keys
+    command: /bin/bash -c "cd /opt/libssh && ./start_ssh_server.sh"
+    stdin_open: true
+    tty: true
