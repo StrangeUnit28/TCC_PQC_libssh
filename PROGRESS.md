@@ -45,7 +45,58 @@ ninja -j4
 
 ---
 
-## ⏳ Passo 0.2: Configurar Build da liboqs com libssh
+### Passo 0.2: Configurar Build da liboqs com libssh ✅
+
+- **Status**: Concluído
+- **Data**: 17/11/2025
+
+**Desafio Encontrado**:
+O linker moderno usa `--as-needed` por padrão, que remove dependências de bibliotecas cujos símbolos não são usados. Como ainda não estamos chamando funções da liboqs, ela era removida do binário final.
+
+**Solução Implementada**:
+Forçar linkagem com `--no-as-needed` temporariamente até que o código use funções da liboqs:
+
+```cmake
+# Em libssh/CMakeLists.txt
+message(STATUS "Adding liboqs for PQC support...")
+set(OQS_ENABLE_KEM_HQC ON CACHE BOOL "Enable HQC KEM" FORCE)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../third_party/liboqs 
+                 ${CMAKE_CURRENT_BINARY_DIR}/liboqs EXCLUDE_FROM_ALL)
+
+# Em libssh/src/CMakeLists.txt  
+if (TARGET oqs)
+  list(APPEND LIBSSH_LINK_LIBRARIES oqs)
+  message(STATUS "liboqs target found and will be linked")
+endif()
+
+# Forçar linkagem (temporário até usar símbolos)
+if (TARGET oqs)
+  if (UNIX AND NOT APPLE)
+    target_link_libraries(ssh PUBLIC "-Wl,--no-as-needed" oqs "-Wl,--as-needed")
+  endif()
+endif()
+```
+
+**Validação**:
+```bash
+cd libssh/build
+ldd lib/libssh.so
+# Saída:
+#   liboqs.so.9 => .../libssh/build/liboqs/lib/liboqs.so.9
+
+readelf -d lib/libssh.so | grep NEEDED | grep oqs
+# Saída:
+#   0x0000000000000001 (NEEDED)  Biblioteca Compartilhada [liboqs.so.9]
+```
+
+**Arquivos Modificados**:
+- `libssh/CMakeLists.txt` - Adicionou liboqs como subdirectory
+- `libssh/src/CMakeLists.txt` - Configurou linkagem com --no-as-needed
+- `POSSIBLE_GUIDE.md` - Atualizado com versão correta (0.15.0)
+
+---
+
+## 🎯 Próximo Passo: Passo 1 - Mapeamento de Pontos de Extensão
 
 ### Próximas Ações:
 
@@ -104,10 +155,10 @@ ninja -j4
 
 ## 📊 Status Geral
 
-- **Fase Atual**: Passo 0.2 (Configurar Build)
-- **Progresso Total**: ~5% (1 de 8 fases principais)
+- **Fase Atual**: Passo 1 → Passo 2 (Implementação KEX)
+- **Progresso Total**: ~10% (2 de 8 fases principais concluídas)
 - **Última Atualização**: 17/11/2025
-- **Próximo Milestone**: Integrar liboqs ao build da libssh
+- **Próximo Milestone**: Implementar KEX HQC-256 puro
 
 ---
 
@@ -132,3 +183,54 @@ ninja -j4
 - ✅ liboqs 0.15.0 (versão mais recente)
 - ✅ Padrão OpenSSH-OQS para wire format
 - ✅ SHA-256 para derivação de chaves híbridas
+
+---
+
+## ✅ Passo 1: Mapeamento de Pontos de Extensão
+
+- **Status**: Concluído
+- **Data**: 17/11/2025
+
+### Análise Realizada
+
+**Constantes e Estruturas Identificadas**:
+- `SSH_KEX_METHODS = 10` tipos de métodos (`libssh/include/libssh/kex.h`)
+- `enum ssh_kex_types_e`: SSH_KEX, SSH_HOSTKEYS, SSH_CRYPT_C_S, etc.
+
+**Algoritmos KEX Existentes** (`libssh/src/kex.c`):
+- **Pós-Quânticos**: `mlkem768x25519-sha256`, `sntrup761x25519-sha512`
+- **ECDH**: `ecdh-sha2-nistp256/384/521`
+- **DH Clássico**: `diffie-hellman-group14/16/18`
+
+### Pontos de Extensão Definidos
+
+**Para HQC-256 (KEX)**:
+1. Adicionar macros em `libssh/src/kex.c`
+2. Criar `libssh/src/kex_hqc256.c` com funções:
+   - `ssh_client_kex_hqc256_init()`
+   - `ssh_server_kex_hqc256_init()`
+   - `ssh_client_kex_hqc256_reply()`
+
+**Para Falcon-1024 (Autenticação)**:
+1. Adicionar `SSH_KEYTYPE_FALCON1024` em `libssh/include/libssh/pki.h`
+2. Criar `libssh/src/pki_falcon.c` com funções PKI completas
+
+**Estratégia**:
+- Fase 1: KEX PQC Puro (HQC-256)
+- Fase 2: KEX Híbrido (ECDH + HQC-256)
+- Fase 3: Autenticação (Falcon-1024)
+- Fase 4: Integração e Testes
+
+**Documentação Criada**:
+- ✅ `MAPPING.md` - Mapeamento completo dos pontos de extensão
+
+---
+
+## ⏳ Próximo: Passo 2 - Implementação KEX HQC-256 Puro
+
+### Ações Planejadas:
+1. Criar `libssh/src/kex_hqc256.c`
+2. Adicionar macros HQC256 em `kex.c`
+3. Implementar funções básicas de KEX usando liboqs
+4. Testar comunicação cliente-servidor
+
