@@ -1,0 +1,45 @@
+# Build artifacts
+build/
+*.o
+*.so
+*.a
+
+# Compiled binaries
+benchmark_kex
+test_hqc256_client
+ssh_server_fork
+
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# Log files
+*.log
+server.log
+benchmark_docker.log
+hqc256_test_output.log
+
+# Test scripts (temporary)
+run_test_client.sh
+run_test_server.sh
+test_hqc256_kex.sh
+test_hqc256_client.c
+
+# Backup files
+*.bak
+
+# Temporary docs (keep only final versions)
+HQC256_INTEGRATION_SUMMARY.md
+TEST_GUIDE.md
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
