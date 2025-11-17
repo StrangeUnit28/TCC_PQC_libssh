@@ -1,3 +1,6 @@
 [submodule "libssh"]
 	path = libssh
 	url = https://gitlab.com/libssh/libssh-mirror.git
+[submodule "third_party/liboqs"]
+	path = third_party/liboqs
+	url = https://github.com/open-quantum-safe/liboqs.git
