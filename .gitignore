@@ -43,3 +43,8 @@ TEST_GUIDE.md
 # OS files
 .DS_Store
 Thumbs.db
+
+# Server SSH keys (generated automatically, should not be versioned)
+server_data/
+ssh_host_*_key
+ssh_host_*_key.pub

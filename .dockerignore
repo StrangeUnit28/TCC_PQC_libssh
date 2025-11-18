@@ -1,6 +1,10 @@
 .git
 .github
 build
+libssh/build
+*/build
 *.md
 .gitignore
 .dockerignore
+CMakeCache.txt
+CMakeFiles

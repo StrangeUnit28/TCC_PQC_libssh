@@ -22,6 +22,13 @@ WORKDIR /opt/libssh
 # Copiar código fonte da libssh do submódulo para o container
 COPY libssh/ /opt/libssh/
 
+# Copiar third_party (liboqs) necessário para PQC
+COPY third_party/ /opt/third_party/
+
+# Copiar script de inicialização do servidor
+COPY start_ssh_server.sh /opt/libssh/start_ssh_server.sh
+RUN chmod +x /opt/libssh/start_ssh_server.sh
+
 # Criar diretório de build
 RUN mkdir -p build
 
@@ -47,16 +54,8 @@ RUN ldconfig
 # Criar diretórios necessários para o servidor SSH
 RUN mkdir -p /var/run/sshd /root/.ssh /etc/ssh
 
-# Gerar chaves do host SSH se necessário
-RUN if [ ! -f /etc/ssh/ssh_host_rsa_key ]; then \
-        ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ''; \
-    fi && \
-    if [ ! -f /etc/ssh/ssh_host_ecdsa_key ]; then \
-        ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N ''; \
-    fi && \
-    if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then \
-        ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ''; \
-    fi
+# Nota: Chaves Falcon-1024 serão geradas pelo start_ssh_server.sh
+# Não geramos chaves tradicionais (RSA, ECDSA, Ed25519) aqui
 
 # Configurar senha root para testes (APENAS PARA AMBIENTE DE DESENVOLVIMENTO)
 RUN echo 'root:tccpassword' | chpasswd
