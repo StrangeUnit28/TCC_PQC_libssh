@@ -7,6 +7,8 @@ Este projeto integra algoritmos de criptografia pós-quântica (PQC) na bibliote
 - **HQC-256**: Key Exchange pós-quântico (Hamming Quasi-Cyclic)
 - **Falcon-1024**: Assinatura digital pós-quântica
 
+Utiliza **liboqs v0.15.0** para implementação dos algoritmos PQC.
+
 Ambiente testado: Ubuntu com Docker para o servidor SSH.
 
 ## Executar o Projeto
@@ -53,7 +55,7 @@ O servidor estará disponível na porta 2222.
 ### 4. Testar a Comunicação PQC
 
 ```bash
-./test_pqc_message.sh
+./test_pqc.sh
 ```
 
 Ou manualmente:
@@ -67,28 +69,28 @@ LD_LIBRARY_PATH=./libssh/build/src:./third_party/liboqs/build/lib \
 
 ```bash
 docker compose logs -f
-✓ HQC-256 server shared secret established
-✓ Using Falcon-1024 hostkey: 0x62a318eb09c0
-✓ Falcon signature SUCCESS!
-✓ HQC-256 key exchange completed (server)
+HQC-256 server shared secret established
+Using Falcon-1024 hostkey: 0x62a318eb09c0
+Falcon signature SUCCESS!
+HQC-256 key exchange completed (server)
 ```
 
-## 🔧 Modificações Implementadas
+## Detalhes Técnicos
 
-### 8 Arquivos Modificados para Integração Completa
+### Arquivos Modificados para Integração PQC
 
-| Arquivo | Mudanças | Objetivo |
-|---------|----------|----------|
-| `libssh/src/server.c` | +45 linhas | Adicionar Falcon ao key exchange do servidor |
-| `libssh/src/bind.c` | +17 linhas | Carregar chave Falcon na sessão via `ssh_key_dup()` |
-| `libssh/src/kex.c` | +8 linhas | Incluir Falcon nos métodos KEX padrão e priorizar HQC |
-| `libssh/src/pki_crypto.c` | +47 linhas | Implementar assinatura e conversão Falcon |
-| `libssh/src/pki_falcon.c` | +65 linhas | Criar `pki_falcon_key_dup()` com cópia de chaves |
-| `libssh/src/session.c` | +2 linhas | Liberar `falcon1024_key` ao destruir sessão |
-| `libssh/include/libssh/session.h` | +1 linha | Adicionar campo `falcon1024_key` à struct srv |
-| `libssh/include/libssh/pki_falcon.h` | +6 linhas | Forward declarations (compatibilidade C90) |
+| Arquivo | Objetivo |
+|---------|----------|
+| `libssh/src/server.c` | Adicionar Falcon ao key exchange do servidor |
+| `libssh/src/bind.c` | Carregar chave Falcon na sessão via `ssh_key_dup()` |
+| `libssh/src/kex.c` | Incluir Falcon nos métodos KEX padrão e priorizar HQC |
+| `libssh/src/pki_crypto.c` | Implementar assinatura e conversão Falcon |
+| `libssh/src/pki_falcon.c` | Criar `pki_falcon_key_dup()` com cópia de chaves |
+| `libssh/src/session.c` | Liberar `falcon1024_key` ao destruir sessão |
+| `libssh/include/libssh/session.h` | Adicionar campo `falcon1024_key` à struct srv |
+| `libssh/include/libssh/pki_falcon.h` | Forward declarations (compatibilidade C90) |
 
-### Detalhes das Principais Modificações
+### Principais Modificações de Código
 
 **1. server.c - server_set_kex() (linhas 107-124)**
 ```c
@@ -118,7 +120,7 @@ docker compose logs | grep -E "(Negotiated|HQC-256|Falcon)"
 
 ## Saída Esperada
 
-Ao executar o teste (`test_pqc_message.sh`), você verá:
+Ao executar o teste (`test_pqc.sh`), você verá:
 
 ```
 [CLIENT] Connecting to localhost:2222...
@@ -141,12 +143,11 @@ Logs do servidor mostram:
 **HQC-256 (Key Exchange)**
 - Chave pública: 7.245 bytes
 - Resistente a ataques de computadores quânticos
-- 226x maior que Curve25519 clássico (32 bytes)
 
 **Falcon-1024 (Assinatura Digital)**
-- Chave pública: 2.481 bytes
-- Chave privada: 10.507 bytes
-- 5x maior que RSA-2048 privada (2.048 bytes)
+- Chave pública: 1.793 bytes
+- Chave privada: 2.305 bytes
+- Assinatura: ~1.280 bytes
 
 ## Resolução de Problemas
 
@@ -180,6 +181,3 @@ docker compose logs
 - `examples/pqc_message_test.c` - Cliente de teste
 - `examples/generate_falcon_hostkey.c` - Gerador de chaves Falcon
 
-## Licença
-
-LGPL 2.1 (mesma da libssh original)

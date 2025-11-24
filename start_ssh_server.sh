@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script para iniciar o servidor SSH libssh com suporte PQC (Falcon-1024)
+# Script para iniciar o servidor SSH libssh com suporte PQC (Falcon-1024 + HQC-256)
 
 echo "=== Iniciando servidor SSH libssh com PQC ==="
 
@@ -39,7 +39,7 @@ fi
 
 # Verificar se a chave foi gerada
 if [ -f /opt/libssh/server_keys/ssh_host_falcon1024_key ]; then
-    echo "✓ Chave Falcon-1024 gerada com sucesso!"
+    echo "Chave Falcon-1024 gerada com sucesso!"
     echo ""
     echo "Detalhes da chave:"
     ls -lh /opt/libssh/server_keys/ssh_host_falcon1024_key*
@@ -63,11 +63,12 @@ echo ""
 pkill -9 samplesshd-cb 2>/dev/null || true
 sleep 1
 
-# Loop infinito para reiniciar servidor após cada conexão
 while true; do
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Aguardando conexões..."
-    # Usando samplesshd-cb apenas com chave Falcon
-    # -v = verbosidade, -p = porta, -k = chave host (Falcon)
+    # Usando samplesshd-cb com PQC completo:
+    # - Hostkey: Falcon-1024 (assinatura, via -k)
+    # - Key Exchange: HQC-256 (automático, compilado na libssh)
+    # -v = verbosidade, -p = porta, -k = chave host
     /opt/libssh/build/examples/samplesshd-cb \
         -v \
         -p 2222 \
@@ -82,7 +83,6 @@ while true; do
         sleep 2
     fi
     
-    # Pequeno delay antes de reiniciar
     sleep 0.5
 done
 
