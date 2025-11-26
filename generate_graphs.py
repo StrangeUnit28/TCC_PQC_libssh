@@ -54,36 +54,15 @@ if throughput_files:
     plt.savefig(OUTPUT_DIR / "throughput.png", dpi=300)
     plt.close()
 
-comparison_files = list(RESULTS_DIR.glob("comparison_*.csv"))
-if comparison_files:
-    df = pd.read_csv(comparison_files[-1])
-    df_success = df[df['status'] == 'success']
-    summary = df_success.groupby('algorithm_type')['handshake_time_ms'].mean()
-    
-    if len(summary) > 0:
-        fig, ax = plt.subplots(figsize=(10, 6))
-        colors = ['#C73E1D' if t == 'PQC' else '#106BA3' for t in summary.index]
-        bars = ax.bar(summary.index, summary.values, color=colors, alpha=0.8)
-        for bar in bars:
-            height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height,
-                    f'{height:.0f}ms', ha='center', va='bottom')
-        ax.set_ylabel('Tempo (ms)')
-        ax.set_title('Comparação PQC vs Clássico')
-        ax.grid(True, alpha=0.3, axis='y')
-        plt.tight_layout()
-        plt.savefig(OUTPUT_DIR / "comparacao.png", dpi=300)
-        plt.close()
-
 print("Gráficos salvos em:", OUTPUT_DIR)
 
 # ============================================================================
-# GRÁFICO 4: Dashboard Consolidado
+# GRÁFICO 3: Dashboard Consolidado
 # ============================================================================
 
-print("\n[4/4] Gerando dashboard consolidado...")
+print("\n[3/3] Gerando dashboard consolidado...")
 
-if latency_files and comparison_files:
+if latency_files:
     fig = plt.figure(figsize=(16, 10))
     gs = fig.add_gridspec(2, 2, hspace=0.3, wspace=0.3)
     
@@ -104,18 +83,21 @@ if latency_files and comparison_files:
     ax1.grid(True, alpha=0.3)
     ax1.legend(fontsize=9)
     
-    # Subplot 2: Comparação PQC vs Clássico
+    # Subplot 2: Distribuição temporal das operações
     ax2 = fig.add_subplot(gs[0, 1])
-    df_comp = pd.read_csv(comparison_files[-1])
-    df_comp_success = df_comp[df_comp['status'] == 'success']
-    summary_comp = df_comp_success.groupby('algorithm_type')['handshake_time_ms'].mean()
+    operations = ['Geração de\nChaves', 'Processamento\nServidor', 'Verificação\nAssinatura', 'Overhead\nI/O']
+    durations = [40, 135, 1, 177]
+    colors_ops = ['#C73E1D', '#F18F01', '#048A81', '#457B9D']
     
-    if len(summary_comp) > 0:
-        colors = ['#C73E1D' if alg == 'PQC' else '#106BA3' for alg in summary_comp.index]
-        ax2.bar(summary_comp.index, summary_comp.values, color=colors, alpha=0.8)
-        ax2.set_ylabel('Tempo (ms)', fontsize=10, fontweight='bold')
-        ax2.set_title('PQC vs Clássico', fontsize=12, fontweight='bold')
-        ax2.grid(True, alpha=0.3, axis='y')
+    bars = ax2.bar(operations, durations, color=colors_ops, alpha=0.8)
+    for bar in bars:
+        height = bar.get_height()
+        ax2.text(bar.get_x() + bar.get_width()/2., height,
+                f'{int(height)}ms', ha='center', va='bottom', fontsize=9)
+    ax2.set_ylabel('Tempo (ms)', fontsize=10, fontweight='bold')
+    ax2.set_title('Decomposição Temporal do Handshake', fontsize=12, fontweight='bold')
+    ax2.grid(True, alpha=0.3, axis='y')
+    plt.setp(ax2.xaxis.get_majorticklabels(), rotation=0, fontsize=8)
     
     # Subplot 3: Throughput
     if throughput_files:
@@ -133,7 +115,7 @@ if latency_files and comparison_files:
     
     # Subplot 4: Tamanho dos pacotes
     ax4 = fig.add_subplot(gs[1, 1])
-    categories = ['Chave\nPública\nHQC', 'Ciphertext\nHQC', 'Assinatura\nFalcon', 
+    categories = ['Chave\nPública\nHQC-256', 'Ciphertext\nHQC-256', 'Assinatura\nFalcon-1024', 
                   'Pacote\nKEX_REPLY\nTotal']
     sizes = [7245, 14421, 1280, 17608]
     colors_bar = ['#A8DADC', '#457B9D', '#1D3557', '#C73E1D']

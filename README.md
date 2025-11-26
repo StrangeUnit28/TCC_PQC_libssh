@@ -140,9 +140,6 @@ Isso executa automaticamente:
 
 # Throughput/Vazão (upload + download)
 ./benchmark_throughput.sh
-
-# Comparação PQC vs Clássico
-./benchmark_comparison.sh
 ```
 
 Resultados salvos em: `./benchmark_results/`

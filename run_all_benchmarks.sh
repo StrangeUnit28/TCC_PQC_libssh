@@ -58,16 +58,7 @@ else
     echo -e "${RED}✗ Falhou${NC}"
 fi
 
-echo -e "${YELLOW}[3/4] Comparação...${NC}"
-if ./benchmark_comparison.sh > /dev/null 2>&1; then
-    COMPARISON_SUCCESS=true
-    echo -e "${GREEN}✓ Completo${NC}"
-else
-    COMPARISON_SUCCESS=false
-    echo -e "${RED}✗ Falhou${NC}"
-fi
-
-echo -e "${YELLOW}[4/4] Gráficos...${NC}"
+echo -e "${YELLOW}[3/3] Gráficos...${NC}"
 if [ ! -d "venv" ]; then
     python3 -m venv venv
     source venv/bin/activate
@@ -108,6 +99,7 @@ EOF
 
     cat << EOF
 
+
 ## Throughput
 
 EOF
@@ -120,34 +112,14 @@ EOF
 
     cat << EOF
 
-## Comparação PQC vs Clássico
-
-| Métrica | PQC | Clássico |
-|---------|-----|----------|
-| KEX | HQC-256 | ECDH-P256 |
-| Assinatura | Falcon-1024 | RSA-3072 |
-
-EOF
-    LATEST_COMPARISON=$(ls -t ${RESULTS_DIR}/comparison_summary_*.txt 2>/dev/null | head -1)
-    if [ -n "$LATEST_COMPARISON" ] && [ "$COMPARISON_SUCCESS" = true ]; then
-        OVERHEAD_MS=$(grep "Overhead:" "$LATEST_COMPARISON" | head -1 | awk '{print $2}')
-        echo "Overhead: **${OVERHEAD_MS}**"
-        echo ""
-        grep -A 10 "RESULTADOS" "$LATEST_COMPARISON" | head -n 15
-    else
-        echo "Dados não disponíveis"
-    fi
-
-    cat << EOF
-
-## Tamanhos
+## Tamanhos de Pacotes
 
 | Componente | Bytes |
 |------------|-------|
-| Chave Pública HQC | 7,245 |
-| Ciphertext HQC | 14,421 |
-| Assinatura Falcon | ~1,280 |
-| Pacote KEX_REPLY | 17,608 |
+| Chave Pública HQC-256 | 7.245 |
+| Ciphertext HQC-256 | 14.421 |
+| Assinatura Falcon-1024 | ~1.280 |
+| Pacote KEX_REPLY (PQC) | 17.608 |
 
 ## Arquivos
 
@@ -162,7 +134,6 @@ echo -e "${GREEN}✓ Relatório: ${REPORT_FILE}${NC}\n"
 echo -e "${BLUE}Resumo:${NC}"
 [ "$LATENCY_SUCCESS" = true ] && echo -e "  ${GREEN}✓${NC} Latência" || echo -e "  ${RED}✗${NC} Latência"
 [ "$THROUGHPUT_SUCCESS" = true ] && echo -e "  ${GREEN}✓${NC} Throughput" || echo -e "  ${RED}✗${NC} Throughput"
-[ "$COMPARISON_SUCCESS" = true ] && echo -e "  ${GREEN}✓${NC} Comparação" || echo -e "  ${RED}✗${NC} Comparação"
 [ "$GRAPHS_SUCCESS" = true ] && echo -e "  ${GREEN}✓${NC} Gráficos" || echo -e "  ${RED}✗${NC} Gráficos"
 
 echo -e "\n${YELLOW}Resultados em: ${RESULTS_DIR}/${NC}"
@@ -182,3 +153,4 @@ if [ "$cleanup" = "y" ]; then
 else
     echo -e "\n${YELLOW}Servidor ainda rodando. Para parar: docker-compose down${NC}"
 fi
+
