@@ -118,6 +118,35 @@ docker compose logs -f
 docker compose logs | grep -E "(Negotiated|HQC-256|Falcon)"
 ```
 
+## Benchmarks de Performance
+
+### Executar Todos os Testes
+
+```bash
+make test
+```
+
+Isso executa automaticamente:
+1. **Latência** - Tempo de handshake SSH
+2. **Throughput** - Taxa de transferência (1M, 10M, 50M)
+3. **Comparação** - PQC vs Clássico
+4. **Gráficos** - Visualizações em PNG
+
+### Testes Individuais
+
+```bash
+# Latência (10 iterações)
+./benchmark_latency.sh
+
+# Throughput/Vazão (upload + download)
+./benchmark_throughput.sh
+
+# Comparação PQC vs Clássico
+./benchmark_comparison.sh
+```
+
+Resultados salvos em: `./benchmark_results/`
+
 ## Saída Esperada
 
 Ao executar o teste (`test_pqc.sh`), você verá:
