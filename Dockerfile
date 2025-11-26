@@ -29,10 +29,6 @@ COPY third_party/ /opt/third_party/
 COPY start_ssh_server.sh /opt/libssh/start_ssh_server.sh
 RUN chmod +x /opt/libssh/start_ssh_server.sh
 
-# Copiar script de inicialização do servidor clássico
-COPY start_ssh_server_classic.sh /opt/libssh/start_ssh_server_classic.sh
-RUN chmod +x /opt/libssh/start_ssh_server_classic.sh
-
 # Criar diretório de build
 RUN mkdir -p build
 
@@ -67,11 +63,8 @@ RUN echo 'root:tccpassword' | chpasswd
 # Expor porta SSH padrão
 EXPOSE 22
 
-# Expor portas adicionais para testes customizados
+# Expor porta para servidor PQC
 EXPOSE 2222
-
-# Expor porta para servidor clássico
-EXPOSE 2223
 
 # Diretório de trabalho para exemplos
 WORKDIR /opt/libssh/build/examples
