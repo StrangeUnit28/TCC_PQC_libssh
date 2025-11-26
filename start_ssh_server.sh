@@ -56,33 +56,24 @@ echo "Servidor configurado com sucesso!"
 echo "Tipo de chave: $KEY_TYPE"
 echo "Arquivo da chave: $KEY_FILE"
 echo ""
-echo "Iniciando servidor SSH na porta 2222 (modo loop para testes)..."
+echo "Iniciando servidor SSH na porta 2222 (modo daemon)..."
 echo ""
 
 # Matar qualquer instância antiga do samplesshd-cb
 pkill -9 samplesshd-cb 2>/dev/null || true
 sleep 1
 
+# Iniciar servidor em background como daemon
 while true; do
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Aguardando conexões..."
-    # Usando samplesshd-cb com PQC completo:
-    # - Hostkey: Falcon-1024 (assinatura, via -k)
-    # - Key Exchange: HQC-256 (automático, compilado na libssh)
-    # -v = verbosidade, -p = porta, -k = chave host
-    /opt/libssh/build/examples/samplesshd-cb \
-        -v \
-        -p 2222 \
-        -k /opt/libssh/server_keys/ssh_host_falcon1024_key \
-        0.0.0.0
-    EXIT_CODE=$?
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Servidor finalizou (exit: $EXIT_CODE)"
-    
-    # Se exit code > 1, pode ser erro crítico
-    if [ $EXIT_CODE -gt 1 ]; then
-        echo "ERRO: Servidor falhou com código $EXIT_CODE"
-        sleep 2
+    if ! pgrep -f "samplesshd-cb.*2222" > /dev/null; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Iniciando servidor..."
+        /opt/libssh/build/examples/samplesshd-cb \
+            -v \
+            -p 2222 \
+            -k /opt/libssh/server_keys/ssh_host_falcon1024_key \
+            0.0.0.0 &
+        SERVER_PID=$!
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Servidor rodando com PID: $SERVER_PID"
     fi
-    
-    sleep 0.5
+    sleep 1
 done
-
