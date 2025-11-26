@@ -6,9 +6,19 @@ services:
     container_name: libssh-server-test
     ports:
       - "2222:2222"
-      - "22:22"
     volumes:
       - ./server_data:/opt/libssh/server_keys
     command: /bin/bash -c "cd /opt/libssh && ./start_ssh_server.sh"
+    stdin_open: true
+    tty: true
+
+  libssh-server-classic:
+    build: .
+    container_name: libssh-server-classic
+    ports:
+      - "2223:2223"
+    volumes:
+      - ./server_data_classic:/opt/libssh/server_keys
+    command: /bin/bash -c "cd /opt/libssh && ./start_ssh_server_classic.sh"
     stdin_open: true
     tty: true

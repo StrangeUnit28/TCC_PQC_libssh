@@ -25,9 +25,13 @@ COPY libssh/ /opt/libssh/
 # Copiar third_party (liboqs) necessário para PQC
 COPY third_party/ /opt/third_party/
 
-# Copiar script de inicialização do servidor
+# Copiar script de inicialização do servidor PQC
 COPY start_ssh_server.sh /opt/libssh/start_ssh_server.sh
 RUN chmod +x /opt/libssh/start_ssh_server.sh
+
+# Copiar script de inicialização do servidor clássico
+COPY start_ssh_server_classic.sh /opt/libssh/start_ssh_server_classic.sh
+RUN chmod +x /opt/libssh/start_ssh_server_classic.sh
 
 # Criar diretório de build
 RUN mkdir -p build
@@ -65,6 +69,9 @@ EXPOSE 22
 
 # Expor portas adicionais para testes customizados
 EXPOSE 2222
+
+# Expor porta para servidor clássico
+EXPOSE 2223
 
 # Diretório de trabalho para exemplos
 WORKDIR /opt/libssh/build/examples
